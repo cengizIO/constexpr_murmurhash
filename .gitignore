@@ -1,1 +1,7 @@
-*.user
+.idea/
+CMakeCache.txt
+Testing/
+catch/
+CMakeFiles
+Makefile
+cmake_install.cmake

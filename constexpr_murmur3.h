@@ -28,86 +28,88 @@
 
 namespace ce_mm3 {
 
-// Heavily based on sample code from
-// http://en.cppreference.com/w/cpp/concept/LiteralType
-class str_view {
-public:
-  template <std::size_t N>
-  constexpr str_view(const char(&a)[N])
-      : p(a), sz(N - 1) {}
+    class str_view {
+    public:
+        template<std::size_t N>
+        constexpr str_view(const char(& a)[N])
+                :p(a), sz(N-1) { }
 
-  constexpr char operator[](std::size_t n) const {
-    return n < sz ? p[n] : throw std::out_of_range("");
-  }
+        constexpr char operator[](std::size_t n) const
+        {
+            return n<sz ? p[n] : throw std::out_of_range("");
+        }
 
-  constexpr uint32_t get_block(int idx) {
-    int i = (block_size() + idx) * 4;
-    uint32_t b0 = p[i];
-    uint32_t b1 = p[i + 1];
-    uint32_t b2 = p[i + 2];
-    uint32_t b3 = p[i + 3];
-    return (b3 << 24) | (b2 << 16) | (b1 << 8) | b0;
-  }
+        constexpr uint32_t get_block(int idx)
+        {
+            int i = (block_size()+idx)*4;
+            uint32_t b0 = p[i];
+            uint32_t b1 = p[i+1];
+            uint32_t b2 = p[i+2];
+            uint32_t b3 = p[i+3];
+            return (b3 << 24) | (b2 << 16) | (b1 << 8) | b0;
+        }
 
-  constexpr std::size_t size() const { return sz; }
+        constexpr std::size_t size() const { return sz; }
 
-  constexpr std::size_t block_size() const { return sz / 4; }
+        constexpr std::size_t block_size() const { return sz/4; }
 
-  constexpr char tail(const int n) const {
-    int tail_size = sz % 4;
-    return p[sz - tail_size + n];
-  }
+        constexpr char tail(const int n) const
+        {
+            int tail_size = sz%4;
+            return p[sz-tail_size+n];
+        }
 
-private:
-  const char *p;
-  std::size_t sz;
-};
+    private:
+        const char* p;
+        std::size_t sz;
+    };
 
-constexpr uint32_t mm3_x86_32(str_view key, uint32_t seed) {
-  uint32_t h1 = seed;
+    constexpr uint32_t mm3_x86_32(str_view key, uint32_t seed)
+    {
+        uint32_t h1 = seed;
 
-  const uint32_t c1 = 0xcc9e2d51;
-  const uint32_t c2 = 0x1b873593;
+        const uint32_t c1 = 0xcc9e2d51;
+        const uint32_t c2 = 0x1b873593;
 
-  const int nblocks = key.size() / 4;
-  for (int i = -nblocks; i; i++) {
-    uint32_t k1 = key.get_block(i);
+        const int nblocks = key.size()/4;
+        for (int i = -nblocks; i; i++) {
+            uint32_t k1 = key.get_block(i);
 
-    k1 *= c1;
-    k1 = (k1 << 15) | (k1 >> (32 - 15));
-    k1 *= c2;
+            k1 *= c1;
+            k1 = (k1 << 15) | (k1 >> (32-15));
+            k1 *= c2;
 
-    h1 ^= k1;
-    h1 = (h1 << 13) | (h1 >> (32 - 13));
-    h1 = h1 * 5 + 0xe6546b64;
-  }
+            h1 ^= k1;
+            h1 = (h1 << 13) | (h1 >> (32-13));
+            h1 = h1*5+0xe6546b64;
+        }
 
-  uint32_t k1 = 0;
-  char t = key.tail(0);
+        uint32_t k1 = 0;
+        char t = key.tail(0);
 
-  switch (key.size() & 3) {
-  case 3:
-    k1 ^= key.tail(2) << 16;
-  case 2:
-    k1 ^= key.tail(1) << 8;
-  case 1:
-    k1 ^= key.tail(0);
-    k1 *= c1;
-    k1 = (k1 << 15) | (k1 >> (32 - 15));
-    k1 *= c2;
-    h1 ^= k1;
-  };
+        switch (key.size() & 3) {
+        case 3:
+            k1 ^= key.tail(2) << 16;
+        case 2:
+            k1 ^= key.tail(1) << 8;
+        case 1:
+            k1 ^= key.tail(0);
+            k1 *= c1;
+            k1 = (k1 << 15) | (k1 >> (32-15));
+            k1 *= c2;
+            h1 ^= k1;
+        };
 
-  h1 ^= key.size();
+        h1 ^= key.size();
 
-  h1 ^= h1 >> 16;
-  h1 *= 0x85ebca6b;
-  h1 ^= h1 >> 13;
-  h1 *= 0xc2b2ae35;
-  h1 ^= h1 >> 16;
+        h1 ^= h1 >> 16;
+        h1 *= 0x85ebca6b;
+        h1 ^= h1 >> 13;
+        h1 *= 0xc2b2ae35;
+        h1 ^= h1 >> 16;
 
-  return h1;
-}
+        return h1;
+    }
 }
 
 #endif

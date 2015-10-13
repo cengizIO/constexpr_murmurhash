@@ -20,65 +20,75 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "gtest/gtest.h"
+#define CATCH_CONFIG_MAIN
+
+#include "catch/src/catch/include/catch.hpp"
 
 #include "constexpr_murmur3.h"
 
 using ce_mm3::mm3_x86_32;
 
-// Strictly speaking, the values produced by this function should
-// be testable with static_asserts, but I prefer gtest for the more
-// friendly interface and error reporting.
-
-// Test values are courtesy of StackOverflow user Ian Boyd
-// See http://stackoverflow.com/a/31929528/140367
-
-TEST(mm_x86_32_test, all_zeros_produce_zero) {
-  EXPECT_EQ(0, mm3_x86_32("", 0));
+TEST_CASE("Empty string without seed should produce zero", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("", 0)==0);
 }
 
-TEST(mm_x86_32_test, zero_input_ignores_most_math) {
-  EXPECT_EQ(0x514E28B7, mm3_x86_32("", 1));
+TEST_CASE("Empty string should ignore most math", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("", 1)==0x514E28B7);
 }
 
-TEST(mm_x86_32_test, seed_uses_unsigned_math) {
-  EXPECT_EQ(0x81F16F39, mm3_x86_32("", 0xffffffff));
+TEST_CASE("Empty string with seed should use unsigned math", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("", 0xffffffff)==0x81F16F39);
 }
 
-TEST(mm_x86_32_test, one_char) {
-  EXPECT_EQ(0x7FA09EA6, mm3_x86_32("a", 0x9747b28c));
+TEST_CASE("One character should produce valid hash", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("a", 0x9747b28c)==0x7FA09EA6);
 }
 
-TEST(mm_x86_32_test, two_chars) {
-  EXPECT_EQ(0x5D211726, mm3_x86_32("aa", 0x9747b28c));
+TEST_CASE("Two characters should produce valid hash", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("aa", 0x9747b28c)==0x5D211726);
 }
 
-TEST(mm_x86_32_test, three_chars) {
-  EXPECT_EQ(0x283E0130, mm3_x86_32("aaa", 0x9747b28c));
+TEST_CASE("Three characters should produce valid hash", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("aaa", 0x9747b28c)==0x283E0130);
 }
 
-TEST(mm_x86_32_test, four_chars) {
-  EXPECT_EQ(0x5A97808A, mm3_x86_32("aaaa", 0x9747b28c));
+TEST_CASE("Four characters should produce valid hash", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("aaaa", 0x9747b28c)==0x5A97808A);
 }
 
-TEST(mm_x86_32_test, endian_order_four_chars) {
-  EXPECT_EQ(0xF0478627, mm3_x86_32("abcd", 0x9747b28c));
+TEST_CASE("Four characters in Endian order should produce valid hash", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("abcd", 0x9747b28c)==0xF0478627);
 }
 
-TEST(mm_x86_32_test, endian_order_three_chars) {
-  EXPECT_EQ(0xC84A62DD, mm3_x86_32("abc", 0x9747b28c));
+TEST_CASE("Three characters in Endian order should produce valid hash", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("abc", 0x9747b28c)==0xC84A62DD);
 }
 
-TEST(mm_x86_32_test, endian_order_two_chars) {
-  EXPECT_EQ(0x74875592, mm3_x86_32("ab", 0x9747b28c));
+TEST_CASE("Three characters in Endian order without seed should produce valid hash", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("abc", 0)==0xB3DD93FA);
 }
 
-TEST(mm_x86_32_test, hello_world) {
-  EXPECT_EQ(0x24884CBA, mm3_x86_32("Hello, world!", 0x9747b28c));
+TEST_CASE("Two characters in Endian order should produce valid hash", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("ab", 0x9747b28c)==0x74875592);
 }
 
-TEST(mm_x86_32_test, long_str) {
-  EXPECT_EQ(0xEE925B90,
-            mm3_x86_32(
-                "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", 0));
+TEST_CASE("'Hello, world!' should produce valid hash", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("Hello, world!", 0x9747b28c)==0x24884CBA);
+}
+
+TEST_CASE("Long string should produce valid hash", "[mm_x86_32_test]")
+{
+    REQUIRE(mm3_x86_32("The quick brown fox jumps over the lazy dog", 0x9747b28c)==0x2FA826CD);
 }
