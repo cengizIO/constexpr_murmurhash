@@ -25,6 +25,7 @@
 #define CONSTEXPR_MURMUR3_HASH_CONSTEXPR_MURMUR3_H
 
 #include <stdint.h>
+#include <stdexcept>
 
 namespace ce_mm3 {
 
@@ -85,7 +86,6 @@ namespace ce_mm3 {
         }
 
         uint32_t k1 = 0;
-        char t = key.tail(0);
 
         switch (key.size() & 3) {
         case 3:
